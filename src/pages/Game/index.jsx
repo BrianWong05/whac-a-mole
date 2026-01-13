@@ -97,15 +97,10 @@ export default function Game() {
       // Stop the "disappear" timer and schedule next one quickly? 
       // Or just let the hit animation play then fade out?
       // Let's clear current timeout and schedule next mole after short delay to show "Great Job"
-      clearTimeout(moleTimerRef.current);
-      
       // Keep "activeMole" set so the hole isn't empty, but set "hitMole" to show feedback
-      // Wait for animation then move on
-      moleTimerRef.current = setTimeout(() => {
-        setActiveMole(null);
-        setHitMole(null);
-        scheduleNextMole();
-      }, 1000); // 1s to see the feedback
+      // The feedback will remain visible until the next mole is scheduled (during the "gap" phase)
+      clearTimeout(moleTimerRef.current);
+      scheduleNextMole();
     }
   };
 
