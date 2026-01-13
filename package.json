@@ -2,6 +2,7 @@
   "name": "whac-a-mole",
   "private": true,
   "version": "0.0.0",
+  "homepage": "https://BrianWong05.github.io/whac-a-mole",
   "type": "module",
   "scripts": {
     "dev": "vite",
