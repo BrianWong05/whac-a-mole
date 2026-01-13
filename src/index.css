@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  /* Prevent double-tap zoom on mobile */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+}
+
+body {
+  @apply touch-manipulation;
+}
