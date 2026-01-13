@@ -8,11 +8,16 @@ export default function Game() {
   const navigate = useNavigate();
   const location = useLocation();
   const difficulty = location.state?.difficulty || 'easy';
+  const duration = location.state?.duration || 60;
   
   // Game State
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(60);
+  const [timeLeft, setTimeLeft] = useState(duration);
   const [isPlaying, setIsPlaying] = useState(false);
+  
+  // Refs for stale closure prevention
+  const scoreRef = useRef(score);
+  useEffect(() => { scoreRef.current = score; }, [score]);
   
   // Logic State
   // activeIndices: Array of currently visible mole indices for rendering
@@ -22,7 +27,7 @@ export default function Game() {
   
   // Settings
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [speed, setSpeed] = useState('slow'); // 'slow' | 'fast'
+  const [speed, setSpeed] = useState(location.state?.speed || 'slow'); // 'slow' | 'fast'
   const [moleSize, setMoleSize] = useState('normal'); // 'normal' | 'large'
   
   const timerRef = useRef(null);
@@ -200,7 +205,7 @@ export default function Game() {
   const endGame = () => {
     stopGame();
     setIsPlaying(false);
-    navigate('/result', { state: { score } });
+    navigate('/result', { state: { score: scoreRef.current } });
   };
 
   const toggleSettings = () => {

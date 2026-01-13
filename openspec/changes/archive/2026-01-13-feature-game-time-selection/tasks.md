@@ -1,0 +1,22 @@
+# Tasks
+
+- [x] Update Home Screen UI
+    - [x] Add state `selectedTime` (default 60).
+    - [x] Create generic `TimeSelector` UI (options: [30, 60, 120]).
+    - [x] Update "Easy Mode" navigation to include `duration`.
+    - [x] Update "Hard Mode" navigation to include `duration`.
+- [x] Update Game Logic
+    - [x] Read `duration` from `location.state` (default 60).
+    - [x] Initialize `timeLeft` with this dynamic value.
+- [x] Verify
+    - [x] Check 30s Game starts with 30s.
+    - [x] Check default fallback is 60s.
+- [x] Implement Custom Time
+    - [x] Add "Custom" input field to TimeSelector.
+    - [x] Validate custom input (min 10s, max 999s).
+    - [x] Update state with valid custom value.
+- [x] Implement Speed Selection
+    - [x] Add state `selectedSpeed` (default 'slow').
+    - [x] Create UI for Speed (Normal/Fast) on Home screen.
+    - [x] Pass `speed` to Game route.
+    - [x] Initialize `speed` in Game component from location state.

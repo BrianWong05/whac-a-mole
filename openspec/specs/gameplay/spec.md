@@ -4,16 +4,13 @@
 TBD - created by archiving change create-whac-a-mole-game. Update Purpose after archive.
 ## Requirements
 ### Requirement: Game Loop
-The game loop logic SHALL be adapted to support multiple difficulties, controlling the maximum number of concurrent moles.
+- The game session length SHALL be determined by the user's selection (30s, 60s, or 120s).
+- The default duration SHALL be 60 seconds.
 
-#### Scenario: Easy Mode Spawn
-- **Given** the difficulty is set to "Easy"
-- **Then** the maximum number of simultaneous moles on screen SHALL be 1.
-
-#### Scenario: Hard Mode Spawn
-- **Given** the difficulty is set to "Hard"
-- **Then** the maximum number of simultaneous moles on screen SHALL be 2.
-- **And** new moles SHALL NOT spawn on already active holes.
+#### Scenario: Variable Timer
+- **Given** the user selected a duration of 120 seconds
+- **When** the game starts
+- **Then** the timer countdown starts at 120.
 
 ### Requirement: Scoring & Feedback
 - Only positive feedback SHALL be shown.
