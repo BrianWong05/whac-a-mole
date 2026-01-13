@@ -5,7 +5,7 @@ import Result from './pages/Result';
 
 function App() {
   return (
-    <div className="min-h-dvh bg-gray-50 text-gray-900 font-sans mx-auto max-w-md shadow-2xl overflow-hidden">
+    <div className="min-h-dvh bg-gray-50 text-gray-900 font-sans overflow-hidden">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/game" element={<Game />} />

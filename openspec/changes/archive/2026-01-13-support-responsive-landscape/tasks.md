@@ -1,0 +1,5 @@
+- [x] Refactor `App.jsx` to allow full width on landscape <!-- id: 1 -->
+- [x] Update `Game.jsx` main container to switch to `flex-row` on landscape <!-- id: 2 -->
+- [x] Implement Left Panel (Score, Timer, Controls) for landscape view <!-- id: 3 -->
+- [x] Implement Right Panel (Grid) with proper scaling (`h-full`, `aspect-square`) <!-- id: 4 -->
+- [x] Verify non-scrolling behavior on various aspect ratios <!-- id: 5 -->
