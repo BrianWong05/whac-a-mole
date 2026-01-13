@@ -1,8 +1,7 @@
-# gameplay Specification
+# Gameplay Specification Delta
 
-## Purpose
-TBD - created by archiving change create-whac-a-mole-game. Update Purpose after archive.
-## Requirements
+## MODIFIED Requirements
+
 ### Requirement: Game Loop
 The game loop logic SHALL be adapted to support multiple difficulties, controlling the maximum number of concurrent moles.
 
@@ -15,24 +14,7 @@ The game loop logic SHALL be adapted to support multiple difficulties, controlli
 - **Then** the maximum number of simultaneous moles on screen SHALL be 2.
 - **And** new moles SHALL NOT spawn on already active holes.
 
-### Requirement: Scoring & Feedback
-- Only positive feedback SHALL be shown.
-- Missing a mole SHALL result in no visual penalty, just the mole disappearing.
-
-#### Scenario: Player hits a mole
-- **Given** an active mole is on screen
-- **When** the user clicks/taps the mole area
-- **Then** the score increments by 1
-- **And** a "Star" or "Heart" icon appears briefly
-- **And** the text "好棒!" (Great Job!) is displayed.
-
-### Requirement: Settings
-- Users MUST be able to toggle between "Slow" and "Fast" speeds.
-- Users MUST be able to toggle mole size.
-
-#### Scenario: Speed adjustment
-- **Given** the user selects "Fast" mode
-- **Then** the mole active duration is reduced.
+## ADDED Requirements
 
 ### Requirement: Difficulty Configuration
 - The game MUST accept a difficulty parameter strictly of 'easy' or 'hard'.
@@ -41,4 +23,3 @@ The game loop logic SHALL be adapted to support multiple difficulties, controlli
 #### Scenario: Default Difficulty
 - **Given** no difficulty is provided in the state
 - **Then** the game defaults to logic for "Easy" mode.
-

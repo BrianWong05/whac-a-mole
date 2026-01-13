@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Mole from './Mole';
 import ScoreBoard from './ScoreBoard';
 import { Cog6ToothIcon } from '@heroicons/react/24/solid';
 
 export default function Game() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const difficulty = location.state?.difficulty || 'easy';
   
   // Game State
   const [score, setScore] = useState(0);
@@ -13,8 +15,10 @@ export default function Game() {
   const [isPlaying, setIsPlaying] = useState(false);
   
   // Logic State
-  const [activeMole, setActiveMole] = useState(null); // index 0-8 or null
-  const [hitMole, setHitMole] = useState(null); // index 0-8 or null
+  // activeIndices: Array of currently visible mole indices for rendering
+  const [activeIndices, setActiveIndices] = useState([]);
+  // hitIndices: Array of indices that are currently in "hit" state (showing feedback)
+  const [hitIndices, setHitIndices] = useState([]);
   
   // Settings
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -22,13 +26,26 @@ export default function Game() {
   const [moleSize, setMoleSize] = useState('normal'); // 'normal' | 'large'
   
   const timerRef = useRef(null);
-  const moleTimerRef = useRef(null);
+  
+  // Cycle Management
+  // We use refs to track the state of each spawn cycle independently
+  // This allows "Hit" events to fast-forward the specific cycle that spawned the mole
+  const cycle1Timeout = useRef(null);
+  const cycle2Timeout = useRef(null);
+  const cycle1Mole = useRef(null); // The mole index currently managed by Cycle 1
+  const cycle2Mole = useRef(null); // The mole index currently managed by Cycle 2
+  
+  // Shared availability tracker for collision detection (synchronous)
+  const occupiedHoles = useRef(new Set());
 
   // Constants
   const SPEEDS = {
-    slow: { visible: 1500, gap: 1000 },
-    fast: { visible: 800, gap: 500 }
+    slow: { visible: 1500, visibleMin: 1000, gap: 1000, gapMin: 500 },
+    fast: { visible: 800, visibleMin: 600, gap: 500, gapMin: 300 }
   };
+
+  // Helper to get random time within range (adds variety)
+  const getRandomTime = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
   // Start Game
   useEffect(() => {
@@ -53,60 +70,131 @@ export default function Game() {
     return () => clearInterval(timerRef.current);
   }, [isPlaying, settingsOpen]);
 
-  // Game Loop (Mole Appearance)
-  const scheduleNextMole = useCallback(() => {
+  // Spawn Cycle Logic
+  const runSpawnCycle = useCallback((cycleId) => {
     if (!isPlaying || settingsOpen) return;
 
-    // Wait for "gap" then show new mole
     const currentSpeed = SPEEDS[speed];
+    const timeoutRef = cycleId === 1 ? cycle1Timeout : cycle2Timeout;
+    const moleRef = cycleId === 1 ? cycle1Mole : cycle2Mole;
     
-    moleTimerRef.current = setTimeout(() => {
-      // Pick random hole loop
+    // Safety: Clear any existing timer for this cycle to prevent overlaps
+    clearTimeout(timeoutRef.current);
+
+    // 1. Wait for GAP
+    const gapTime = getRandomTime(currentSpeed.gapMin, currentSpeed.gap);
+
+    timeoutRef.current = setTimeout(() => {
+      if (!isPlaying || settingsOpen) return;
+
+      // 2. Pick a hole
       let nextMole;
+      let attempts = 0;
       do {
         nextMole = Math.floor(Math.random() * 9);
-      } while (nextMole === activeMole); // Avoid same hole twice in a row (optional, but good)
+        attempts++;
+      } while (occupiedHoles.current.has(nextMole) && attempts < 20);
 
-      setActiveMole(nextMole);
-      setHitMole(null); // Reset hit state
+      // If we couldn't find a spot (grid full), just wait a bit and try again
+      if (occupiedHoles.current.has(nextMole)) {
+        runSpawnCycle(cycleId);
+        return;
+      }
 
-      // Hide after "visible" duration
-      moleTimerRef.current = setTimeout(() => {
-        setActiveMole(null);
-        // Schedule next
-        scheduleNextMole();
-      }, currentSpeed.visible);
+      // 3. Spawn Mole
+      occupiedHoles.current.add(nextMole);
+      moleRef.current = nextMole;
+      setActiveIndices(prev => [...prev, nextMole]);
 
-    }, currentSpeed.gap);
+      // 4. Set timer to Hide Mole
+      const visibleTime = getRandomTime(currentSpeed.visibleMin, currentSpeed.visible);
+      
+      timeoutRef.current = setTimeout(() => {
+        // Natural expiration
+        occupiedHoles.current.delete(nextMole);
+        if (moleRef.current === nextMole) {
+           moleRef.current = null;
+        }
+        setActiveIndices(prev => prev.filter(i => i !== nextMole));
+        
+        // Loop
+        runSpawnCycle(cycleId);
+      }, visibleTime);
 
-  }, [activeMole, isPlaying, settingsOpen, speed]);
+    }, gapTime);
 
+  }, [isPlaying, settingsOpen, speed]);
+
+  // Initialize Cycles
   useEffect(() => {
     if (isPlaying && !settingsOpen) {
-      scheduleNextMole();
+      // Start Cycle 1
+      runSpawnCycle(1);
+
+      // Start Cycle 2 only if Hard mode
+      if (difficulty === 'hard') {
+        // Add a small initial offset so they don't spawn exactly safely together
+        setTimeout(() => runSpawnCycle(2), 500);
+      }
     }
-    return () => clearTimeout(moleTimerRef.current);
-  }, [isPlaying, settingsOpen, speed]); // Re-schedule if settings change
+
+    return () => {
+      clearTimeout(cycle1Timeout.current);
+      clearTimeout(cycle2Timeout.current);
+      
+      // Cleanup board state to prevent orphans on pause/settings change
+      cycle1Mole.current = null;
+      cycle2Mole.current = null;
+      occupiedHoles.current.clear();
+      setActiveIndices([]);
+      setHitIndices([]);
+    };
+  }, [isPlaying, settingsOpen, speed, difficulty, runSpawnCycle]);
 
 
   const handleHit = (index) => {
-    if (index === activeMole && hitMole === null) {
+    // Check if valid hit
+    if (occupiedHoles.current.has(index) && !hitIndices.includes(index)) {
       setScore(s => s + 1);
-      setHitMole(index);
       
-      // Stop the "disappear" timer and schedule next one quickly? 
-      // Or just let the hit animation play then fade out?
-      // Let's clear current timeout and schedule next mole after short delay to show "Great Job"
-      // Keep "activeMole" set so the hole isn't empty, but set "hitMole" to show feedback
-      // The feedback will remain visible until the next mole is scheduled (during the "gap" phase)
-      clearTimeout(moleTimerRef.current);
-      scheduleNextMole();
+      // Visual Feedback
+      setHitIndices(prev => [...prev, index]);
+      
+      // Cleanup function to run
+      const cleanupHit = (cycleRunner) => {
+          occupiedHoles.current.delete(index);
+          
+          setTimeout(() => {
+            setActiveIndices(prev => prev.filter(i => i !== index));
+            setHitIndices(prev => prev.filter(i => i !== index));
+            // Restart the cycle that owned this (or default to 1 if orphan)
+            if (cycleRunner) cycleRunner(); 
+          }, 200); 
+      };
+
+      // Determine owner and fast-forward
+      if (cycle1Mole.current === index) {
+        clearTimeout(cycle1Timeout.current);
+        cycle1Mole.current = null;
+        cleanupHit(() => runSpawnCycle(1));
+        
+      } else if (cycle2Mole.current === index) {
+        clearTimeout(cycle2Timeout.current);
+        cycle2Mole.current = null;
+        cleanupHit(() => runSpawnCycle(2));
+      } else {
+        // Orphan case: Mole exists in occupiedHoles/activeIndices but neither cycle claims it.
+        // This happens if cycles reset (e.g. settings change) but state wasn't cleared, 
+        // OR logic race condition. We must clean it up to avoid stuck "Good Job" message.
+        cleanupHit(null); // Don't restart a cycle, as we don't know which one it was. The loops are likely already running.
+      }
     }
   };
 
   const stopGame = () => {
     clearInterval(timerRef.current);
-    clearTimeout(moleTimerRef.current);
+    clearTimeout(cycle1Timeout.current);
+    clearTimeout(cycle2Timeout.current);
   };
 
   const endGame = () => {
@@ -152,14 +240,18 @@ export default function Game() {
                 </span>
              </div>
           </div>
+          
+           <div className="mb-4 text-center">
+              <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest ${difficulty === 'hard' ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>
+                {difficulty === 'hard' ? '挑戰模式' : '簡單模式'}
+              </span>
+           </div>
 
           <button 
             onClick={toggleSettings}
             className="p-3 bg-white rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-2 border-dashed border-gray-200 transition-colors mx-auto landscape:mx-0 landscape:mt-auto landscape:w-full landscape:flex landscape:items-center landscape:justify-center landscape:gap-2 group"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 group-hover:rotate-45 transition-transform duration-300">
-              <path fillRule="evenodd" d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 00-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 00-2.282.819l-.922 1.597a1.875 1.875 0 00.432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 000 1.139c.015.2-.059.352-.153.43l-.841.692a1.875 1.875 0 00-.432 2.385l.922 1.597a1.875 1.875 0 002.282.819l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.57.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 002.28-.819l.922-1.597a1.875 1.875 0 00-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 000-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.891-1.59.433-2.385l-.922-1.597a1.875 1.875 0 00-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 00-.985-.57c-.183-.087-.277-.227-.297-.348l-.179-1.072a1.875 1.875 0 00-1.85-1.567h-1.843zM12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z" clipRule="evenodd" />
-            </svg>
+            <Cog6ToothIcon className="w-6 h-6 group-hover:rotate-45 transition-transform duration-300" />
             <span className="hidden landscape:inline font-bold text-sm">遊戲設定</span>
           </button>
         </div>
@@ -175,8 +267,8 @@ export default function Game() {
             {Array.from({ length: 9 }).map((_, index) => (
               <Mole 
                 key={index}
-                isVisible={activeMole === index}
-                isHit={hitMole === index}
+                isVisible={activeIndices.includes(index)}
+                isHit={hitIndices.includes(index)}
                 onClick={() => handleHit(index)}
               />
             ))}

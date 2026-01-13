@@ -28,12 +28,27 @@ export default function Home() {
           <p className="text-gray-500 text-sm">點擊地鼠來得分，小心不要點錯了！</p>
         </div>
 
-        <button
-          onClick={() => navigate('/game')}
-          className="w-full bg-green-500 hover:bg-green-600 text-white text-2xl font-bold py-5 px-8 rounded-2xl shadow-[0_8px_0_rgb(21,128,61)] hover:shadow-[0_4px_0_rgb(21,128,61)] hover:translate-y-1 active:shadow-none active:translate-y-2 transition-all"
-        >
-          開始遊戲
-        </button>
+<div className="flex flex-col gap-4 w-full">
+            <button
+              onClick={() => navigate('/game', { state: { difficulty: 'easy' } })}
+              className="w-full bg-green-500 hover:bg-green-600 text-white text-xl font-bold py-4 px-6 rounded-2xl shadow-[0_6px_0_rgb(21,128,61)] hover:shadow-[0_3px_0_rgb(21,128,61)] hover:translate-y-1 active:shadow-none active:translate-y-2 transition-all"
+            >
+              <div className="flex flex-col items-center">
+                <span>簡單模式</span>
+                <span className="text-sm opacity-90 font-normal mt-1">一次一隻</span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => navigate('/game', { state: { difficulty: 'hard' } })}
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xl font-bold py-4 px-6 rounded-2xl shadow-[0_6px_0_rgb(194,65,12)] hover:shadow-[0_3px_0_rgb(194,65,12)] hover:translate-y-1 active:shadow-none active:translate-y-2 transition-all"
+            >
+              <div className="flex flex-col items-center">
+                <span>挑戰模式</span>
+                <span className="text-sm opacity-90 font-normal mt-1">一次兩隻</span>
+              </div>
+            </button>
+          </div>
 
         <div className="mt-8 text-xs text-gray-400 font-bold uppercase tracking-widest">
           React Game Demo
