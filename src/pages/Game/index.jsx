@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Mole from './Mole';
 import ScoreBoard from './ScoreBoard';
 import { Cog6ToothIcon } from '@heroicons/react/24/solid';
+import { playSound } from '@/utils/audio';
 
 export default function Game() {
   const navigate = useNavigate();
@@ -161,6 +162,9 @@ export default function Game() {
     // Check if valid hit
     if (occupiedHoles.current.has(index) && !hitIndices.includes(index)) {
       setScore(s => s + 1);
+      
+      // Audio Feedback
+      playSound();
       
       // Visual Feedback
       setHitIndices(prev => [...prev, index]);
