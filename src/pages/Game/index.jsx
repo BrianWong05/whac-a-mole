@@ -319,12 +319,20 @@ export default function Game() {
                 </div>
               </div>
 
-              <button 
-                onClick={toggleSettings}
-                className="mt-10 px-8 py-3 bg-gray-900 hover:bg-black text-white rounded-xl font-bold shadow-lg hover:shadow-xl transform transition hover:-translate-y-0.5 active:translate-y-0"
-              >
-                繼續遊戲
-              </button>
+              <div className="flex flex-col gap-3 mt-10">
+                <button 
+                  onClick={toggleSettings}
+                  className="w-full px-8 py-3 bg-gray-900 hover:bg-black text-white rounded-xl font-bold shadow-lg hover:shadow-xl transform transition hover:-translate-y-0.5 active:translate-y-0"
+                >
+                  繼續遊戲
+                </button>
+                <button 
+                  onClick={() => navigate('/')}
+                  className="w-full px-8 py-3 bg-white hover:bg-red-50 text-red-500 border-2 border-red-100 hover:border-red-200 rounded-xl font-bold transition-all"
+                >
+                  離開遊戲
+                </button>
+              </div>
             </div>
           </div>
         )}
