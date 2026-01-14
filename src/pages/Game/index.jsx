@@ -4,8 +4,10 @@ import Mole from './Mole';
 import ScoreBoard from './ScoreBoard';
 import { Cog6ToothIcon } from '@heroicons/react/24/solid';
 import { playSound } from '@/utils/audio';
+import { useScrollLock } from '../../hooks/useScrollLock';
 
 export default function Game() {
+  useScrollLock();
   const navigate = useNavigate();
   const location = useLocation();
   const difficulty = location.state?.difficulty || 'easy';
