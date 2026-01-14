@@ -1,1 +1,1 @@
-{"root":["./src/app.jsx","./src/main.jsx","./src/pages/game/mole.jsx","./src/pages/game/scoreboard.jsx","./src/pages/game/index.jsx","./src/pages/home/index.jsx","./src/pages/result/index.jsx","./src/utils/audio.js"],"version":"5.9.3"}
+{"root":["./src/app.jsx","./src/main.jsx","./src/hooks/usescrolllock.js","./src/pages/game/mole.jsx","./src/pages/game/scoreboard.jsx","./src/pages/game/index.jsx","./src/pages/home/index.jsx","./src/pages/result/index.jsx","./src/utils/audio.js"],"version":"5.9.3"}
