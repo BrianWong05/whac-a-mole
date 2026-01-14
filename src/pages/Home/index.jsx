@@ -94,11 +94,6 @@ export default function Home() {
                 </button>
              </div>
            </div>
-           
-           <div className="h-px w-full bg-orange-100 my-4"></div>
-
-           <p className="text-gray-600 text-lg font-bold mb-1">準備好了嗎？</p>
-           <p className="text-gray-500 text-sm">點擊地鼠來得分！</p>
         </div>
 
         <div className="flex flex-col gap-4 w-full">
