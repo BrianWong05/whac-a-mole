@@ -35,6 +35,11 @@ export default function Game() {
   
   const timerRef = useRef(null);
   
+  // Performance Tracking Refs
+  const totalSpawns = useRef(0);
+  const spawnTimes = useRef(new Map()); // Map<index, timestamp>
+  const reactionHistory = useRef([]); // Array<ms>
+  
   // Cycle Management
   // We use refs to track the state of each spawn cycle independently
   // This allows "Hit" events to fast-forward the specific cycle that spawned the mole
@@ -112,6 +117,11 @@ export default function Game() {
       // 3. Spawn Mole
       occupiedHoles.current.add(nextMole);
       moleRef.current = nextMole;
+      
+      // Track Metrics
+      totalSpawns.current += 1;
+      spawnTimes.current.set(nextMole, Date.now());
+
       setActiveIndices(prev => [...prev, nextMole]);
 
       // 4. Set timer to Hide Mole
@@ -165,6 +175,14 @@ export default function Game() {
     if (occupiedHoles.current.has(index) && !hitIndices.includes(index)) {
       setScore(s => s + 1);
       
+      // Track Reaction Time
+      const spawnTime = spawnTimes.current.get(index);
+      if (spawnTime) {
+        const reactionTime = Date.now() - spawnTime;
+        reactionHistory.current.push(reactionTime);
+        spawnTimes.current.delete(index);
+      }
+
       // Audio Feedback
       playSound();
       
@@ -211,7 +229,13 @@ export default function Game() {
   const endGame = () => {
     stopGame();
     setIsPlaying(false);
-    navigate('/result', { state: { score: scoreRef.current } });
+    navigate('/result', { 
+      state: { 
+        score: scoreRef.current,
+        totalSpawns: totalSpawns.current,
+        reactionHistory: reactionHistory.current
+      } 
+    });
   };
 
   const toggleSettings = () => {
