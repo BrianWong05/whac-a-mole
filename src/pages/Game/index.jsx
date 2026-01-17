@@ -73,7 +73,7 @@ export default function Game() {
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          endGame();
+          clearInterval(timerRef.current);
           return 0;
         }
         return prev - 1;
@@ -82,6 +82,13 @@ export default function Game() {
 
     return () => clearInterval(timerRef.current);
   }, [isPlaying, settingsOpen]);
+
+  // Handle Game End
+  useEffect(() => {
+    if (timeLeft === 0 && isPlaying) {
+      endGame();
+    }
+  }, [timeLeft, isPlaying]);
 
   // Spawn Cycle Logic
   const runSpawnCycle = useCallback((cycleId) => {

@@ -116,6 +116,13 @@ export default function Home() {
                 <span className="text-sm opacity-90 font-normal mt-1">一次兩隻</span>
               </div>
             </button>
+
+            <button
+              onClick={() => navigate('/history')}
+              className="w-full bg-white hover:bg-gray-50 text-gray-500 text-lg font-bold py-3 px-6 rounded-2xl border-2 border-gray-200 hover:border-gray-300 transition-all flex items-center justify-center gap-2"
+            >
+              <span>查看歷史紀錄</span>
+            </button>
           </div>
       </div>
     </div>

@@ -1,14 +1,43 @@
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
 
 export default function Result() {
   const navigate = useNavigate();
   const location = useLocation();
   const { score = 0, totalSpawns = 0, reactionHistory = [] } = location.state || {}; // Destructure with defaults
+  
+  const hasSaved = useRef(false);
 
   const hitRate = totalSpawns > 0 ? Math.round((score / totalSpawns) * 100) : 0;
   const avgReaction = reactionHistory.length > 0
     ? (reactionHistory.reduce((a, b) => a + b, 0) / reactionHistory.length / 1000).toFixed(2)
     : "0.00";
+
+  // Persistent History Saving
+  useEffect(() => {
+    if (hasSaved.current || !location.state) return;
+
+    try {
+      const history = JSON.parse(localStorage.getItem('whac-a-mole-history') || '[]');
+      
+      const newRecord = {
+        id: crypto.randomUUID(),
+        date: new Date().toLocaleString('zh-HK', { hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+        score,
+        totalSpawns,
+        hitRate: `${hitRate}%`,
+        avgReaction: `${avgReaction}s`,
+        reactionHistory, // Save full details
+        // We aren't tracking difficulty/mode yet in result state, but can add if needed.
+        // For now, these core metrics match the requirements.
+      };
+
+      localStorage.setItem('whac-a-mole-history', JSON.stringify([newRecord, ...history]));
+      hasSaved.current = true;
+    } catch (error) {
+      console.error('Failed to save history:', error);
+    }
+  }, [score, totalSpawns, hitRate, avgReaction, location.state]);
 
   return (
 
